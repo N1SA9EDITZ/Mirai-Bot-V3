@@ -3,5 +3,7 @@
   "mqtt": {
     "enabled": true,
     "reconnectInterval": 3600
-  }
+  },
+  "author": "N1SA9",
+  "botName": "KuRuMi-V3"
 }
