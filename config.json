@@ -10,7 +10,7 @@
         "autoMarkDelivery": false,
         "autoReconnect": true
     },
-    "language": "vi",
+    "language": "en",
     "DeveloperMode": false,
     "autoCreateDB": true,
     "allowInbox": true,
@@ -20,10 +20,10 @@
     "PASSWORD": "",
     "OTPKEY": "",
     "FACEBOOK_ADMIN": "",
-    "BOTNAME": "Mirai-V3-Unofficial",
-    "PREFIX": "!",
+    "BOTNAME": "KuRuMi-V3",
+    "PREFIX": ".",
     "BOXADMIN": "6804616456270022",
-    "ADMINBOT": [],
+    "ADMINBOT": ["YOUR_FB_UID"],
     "NDH": [
         "502275138"
     ],
