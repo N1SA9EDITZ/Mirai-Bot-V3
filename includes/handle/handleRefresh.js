@@ -1,32 +1,32 @@
-module.exports = function ({ api, models, Users, Threads, Currencies }) {
+module.exports = function ({ api, Threads }) {
 
-    return function ({ event }) {
+    return async function ({ event }) {
 
-        if (!event.messageReply) return;
-
-        const { handleReply, commands } = global.client;
-        const { threadID, messageID, messageReply } = event;
-
-        const data = handleReply.find(e => e.messageID == messageReply.messageID);
-        if (!data) return;
-
-        const cmd = commands.get(data.name);
-        if (!cmd || !cmd.handleReply) return;
+        const { threadID, logMessageType, logMessageData } = event;
 
         try {
 
-            cmd.handleReply({
-                api,
-                event,
-                models,
-                Users,
-                Threads,
-                Currencies,
-                handleReply: data
-            });
+            let data = await Threads.getData(threadID);
+            if (!data) return;
 
-        } catch (err) {
-            api.sendMessage("❌ Reply error", threadID, messageID);
+            let info = data.threadInfo || {};
+
+            if (logMessageType === "log:thread-name") {
+                info.threadName = logMessageData.name;
+                await Threads.setData(threadID, { threadInfo: info });
+            }
+
+            if (logMessageType === "log:unsubscribe") {
+                const uid = logMessageData.leftParticipantFbId;
+
+                info.participantIDs = info.participantIDs.filter(id => id != uid);
+                info.adminIDs = info.adminIDs.filter(a => a.id != uid);
+
+                await Threads.setData(threadID, { threadInfo: info });
+            }
+
+        } catch (e) {
+            console.log(e);
         }
     };
 };
