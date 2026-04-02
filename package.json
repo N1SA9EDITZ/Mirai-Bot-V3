@@ -1,19 +1,19 @@
 {
-    "name": "Mirai-Bot",
+    "name": "KuRuMi-V3",
     "version": "3.0.0",
     "description": "A simple Facebook Messenger Bot made by me(CatalizCS) and my brother SpermLord.",
-    "main": "mirai.js",
+    "main": "KuRuMi.js",
     "scripts": {
         "start": "node index"
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/DongDev-VN/Mirai-Bot-V3.git"
+        "url": "git+https://github.com/EpicDanger198/KuRuMi-V3-MiRaI.git"
     },
-    "author": "DongDev",
+    "author": "N1SA9",
     "dependencies": {
         "@dongdev/fca-unofficial": "^1.0.0",
-        "axios": "^1.7.7",
+        "axios": "^1.14.0",
         "bluebird": "^2.11.0",
         "body-parser": "^1.20.3",
         "caesar-salad": "^2.1.0",
