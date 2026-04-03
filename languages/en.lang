@@ -3,7 +3,7 @@
 # Put the # character at the beginning of each sentence if you don't want the code to run those lines. 
 # Thanks to https://www.facebook.com/duong.than.net for translate to English!
 
-# mirai.js 
+# kurumi.js 
 
 mirai.errorFormat=Malformed module!
 mirai.nameExist=Module's name is similar to another module!
