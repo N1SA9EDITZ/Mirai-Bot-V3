@@ -1,9 +1,9 @@
 module.exports.config = {
 	name: "joinNoti",
 	eventType: ["log:subscribe"],
-	version: "1.0.3",
-	credits: "Mirai Team",
-	description: "Thông báo bot hoặc người vào nhóm",
+	version: "2.0.0",
+	credits: "N1SA9",
+	description: "Notify when users or bot join the group",
 	dependencies: {
 		"fs-extra": ""
 	}
@@ -12,10 +12,29 @@ module.exports.config = {
 module.exports.run = async function({ api, event, Users }) {
 	const { join } = global.nodemodule["path"];
 	const { threadID } = event;
+
+	// BOT JOIN
 	if (event.logMessageData.addedParticipants.some(i => i.userFbId == api.getCurrentUserID())) {
-		api.changeNickname(`[ ${global.config.PREFIX} ] • ${(!global.config.BOTNAME) ? "Kết nối thành công :<" : global.config.BOTNAME}`, threadID, api.getCurrentUserID());
-		return api.sendMessage(`Hellooooooooooooooooooooooooooooooooooooooo <3`, threadID);
+		api.changeNickname(
+			`✨ ${global.config.BOTNAME || "Kurumi"} ✨`,
+			threadID,
+			api.getCurrentUserID()
+		);
+
+		return api.sendMessage(
+`✨ Hello everyone 👋
+
+🤖 ${global.config.BOTNAME || "Kurumi-V3"} Bot is now connected!
+
+📌 Prefix: ${global.config.PREFIX}
+💬 Type "${global.config.PREFIX}help" to view commands
+
+💖 Enjoy using Kurumi-V3!`,
+			threadID
+		);
 	}
+
+	// USER JOIN
 	else {
 		try {
 			const { createReadStream, existsSync, mkdirSync } = global.nodemodule["fs-extra"];
@@ -25,10 +44,12 @@ module.exports.run = async function({ api, event, Users }) {
 			const path = join(__dirname, "cache", "joinGif");
 			const pathGif = join(path, `${threadID}.gif`);
 
-			var mentions = [], nameArray = [], memLength = [], i = 0;
-			
-			for (id in event.logMessageData.addedParticipants) {
-				const userName = event.logMessageData.addedParticipants[id].fullName;
+			let mentions = [], nameArray = [], memLength = [], i = 0;
+
+			for (let user of event.logMessageData.addedParticipants) {
+				const userName = user.fullName;
+				const id = user.userFbId;
+
 				nameArray.push(userName);
 				mentions.push({ tag: userName, id });
 				memLength.push(participantIDs.length - i++);
@@ -36,24 +57,38 @@ module.exports.run = async function({ api, event, Users }) {
 				if (!global.data.allUserID.includes(id)) {
 					await Users.createData(id, { name: userName, data: {} });
 					global.data.allUserID.push(id);
-					logger(global.getText("handleCreateDatabase", "newUser", id), "[ DATABASE ]");
 				}
 			}
+
 			memLength.sort((a, b) => a - b);
-			
-			(typeof threadData.customJoin == "undefined") ? msg = "👋Welcome {name}.\nChào mừng đã đến với {threadName}.\n{type} là thành viên thứ {soThanhVien} của nhóm 🥳" : msg = threadData.customJoin;
+
+			let msg = threadData.customJoin ||
+`👋 Welcome {name}!
+
+🎉 {type} joined **{threadName}**
+👥 Member No: {soThanhVien}
+
+✨ Enjoy your stay with Kurumi!`;
+
 			msg = msg
-			.replace(/\{name}/g, nameArray.join(', '))
-			.replace(/\{type}/g, (memLength.length > 1) ?  'các bạn' : 'bạn')
-			.replace(/\{soThanhVien}/g, memLength.join(', '))
-			.replace(/\{threadName}/g, threadName);
+				.replace(/\{name}/g, nameArray.join(', '))
+				.replace(/\{type}/g, (memLength.length > 1) ? 'They have' : 'You have')
+				.replace(/\{soThanhVien}/g, memLength.join(', '))
+				.replace(/\{threadName}/g, threadName);
 
-			if (existsSync(path)) mkdirSync(path, { recursive: true });
+			if (!existsSync(path)) mkdirSync(path, { recursive: true });
 
-			if (existsSync(pathGif)) formPush = { body: msg, attachment: createReadStream(pathGif), mentions }
-			else formPush = { body: msg, mentions }
+			let formPush;
+			if (existsSync(pathGif)) {
+				formPush = { body: msg, attachment: createReadStream(pathGif), mentions };
+			} else {
+				formPush = { body: msg, mentions };
+			}
 
 			return api.sendMessage(formPush, threadID);
-		} catch (e) { return console.log(e) };
+
+		} catch (e) {
+			console.log(e);
+		}
 	}
-}
+};
