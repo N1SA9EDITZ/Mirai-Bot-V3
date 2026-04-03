@@ -1,24 +1,35 @@
-module.exports = function({ sequelize, Sequelize }) {
-	let Users = sequelize.define('Users', {
-		num: {
-			type: Sequelize.INTEGER,
-			primaryKey: true,
-			autoIncrement: true
-		},
-		userID: {
-			type: Sequelize.BIGINT,
-			unique: true
-		},
-        name: {
-            type: Sequelize.STRING
-        },
-        gender: {
-            type: Sequelize.STRING
-        },
-		data: {
-			type: Sequelize.JSON
-		}
-	});
+module.exports = function ({ sequelize, Sequelize }) {
 
-	return Users;
-}
+  const Users = sequelize.define("Users", {
+
+    num: {
+      type: Sequelize.INTEGER,
+      primaryKey: true,
+      autoIncrement: true
+    },
+
+    userID: {
+      type: Sequelize.STRING, // FIXED
+      unique: true,
+      allowNull: false
+    },
+
+    name: {
+      type: Sequelize.STRING,
+      defaultValue: "Unknown"
+    },
+
+    gender: {
+      type: Sequelize.STRING,
+      defaultValue: "unknown"
+    },
+
+    data: {
+      type: Sequelize.JSON,
+      defaultValue: {}
+    }
+
+  });
+
+  return Users;
+};
