@@ -1,3 +1,5 @@
+require("./server");
+
 const { readdirSync, readFileSync } = require("fs-extra");
 const { join } = require("path");
 const logger = require("./utils/log.js");
