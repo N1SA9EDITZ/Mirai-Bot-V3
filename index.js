@@ -3,24 +3,23 @@ const logger = require("./utils/log");
 
 global.countRestart = 0;
 
-function startBot(message) {
-  if (message) logger(message, "[ KuRuMi-V3 ]");
-
+function startBot() {
   const child = spawn("node", ["kurumi.js"], {
     cwd: __dirname,
     stdio: "inherit",
     shell: true
   });
 
-  child.on("close", (codeExit) => {
-    if ((codeExit !== 0) && global.countRestart < 5) {
+  child.on("close", (code) => {
+    if (code !== 0 && global.countRestart < 5) {
       global.countRestart++;
-      startBot("🔄 Restarting KuRuMi-V3...");
+      logger("🔄 Restarting KuRuMi-V3...", "[ SYSTEM ]");
+      startBot();
     }
   });
 
-  child.on("error", (error) => {
-    logger("Error: " + JSON.stringify(error), "[ KuRuMi-V3 ]");
+  child.on("error", (err) => {
+    logger("❌ Error: " + err, "[ SYSTEM ]");
   });
 }
 
