@@ -1,11 +1,11 @@
 module.exports.config = {
     name: 'menu',
-    version: '1.1.1',
+    version: '1.1.2',
     hasPermssion: 0,
-    credits: 'DC-Nam mod by Vtuan & DongDev fix',
-    description: 'Xem danh sách nhóm lệnh, thông tin lệnh',
+    credits: 'N1SA9',
+    description: 'View command categories and command info',
     commandCategory: 'Box chat',
-    usages: '[...name commands|all]',
+    usages: '[command name|all]',
     cooldowns: 5,
     images: [],
     envConfig: {
@@ -16,131 +16,194 @@ module.exports.config = {
     }
 };
 
-const { autoUnsend = this.config.envConfig.autoUnsend } = global.config == undefined ? {} : global.config.menu == undefined ? {} : global.config.menu;
-const { compareTwoStrings, findBestMatch } = require('string-similarity');
-const { readFileSync, writeFileSync, existsSync } = require('fs-extra');
+const axios = require("axios");
+const moment = require("moment-timezone");
+const { findBestMatch } = require("string-similarity");
 
 module.exports.run = async function ({ api, event, args }) {
-    const axios = require("axios");
-    const moment = require("moment-timezone");
     const { sendMessage: send, unsendMessage: un } = api;
     const { threadID: tid, messageID: mid, senderID: sid } = event;
     const cmds = global.client.commands;
 
+    const autoUnsend =
+        global.config?.menu?.autoUnsend ||
+        this.config.envConfig.autoUnsend;
+
     const url = 'https://files.catbox.moe/amblv9.gif';
     const img = (await axios.get(url, { responseType: "stream" })).data;
-    const time = moment.tz("Asia/Ho_Chi_Minh").format("HH:mm:ss || DD/MM/YYYY");
 
+    // ✅ BANGLADESH TIME FIX
+    const time = moment.tz("Asia/Dhaka").format("HH:mm:ss || DD/MM/YYYY");
+
+    // ========== COMMAND DETAIL ==========
     if (args.length >= 1) {
-        if (typeof cmds.get(args.join(' ')) == 'object') {
-            const body = infoCmds(cmds.get(args.join(' ')).config);
-            return send(body, tid, mid);
-        } else {
-            if (args[0] == 'all') {
-                const data = cmds.values();
-                var txt = '╭─────────────⭓\n',
-                    count = 0;
-                for (const cmd of data) txt += `│ ${++count}. ${cmd.config.name} | ${cmd.config.description}\n`;
-                txt += `\n├────────⭔\n│ ⏳ Tự động gỡ tin nhắn sau: ${autoUnsend.timeOut}s\n╰─────────────⭓`;
-                return send({ body: txt, attachment: (img) }, tid, (a, b) => autoUnsend.status ? setTimeout(v1 => un(v1), 1000 * autoUnsend.timeOut, b.messageID) : '');
-            } else {
-                const cmdsValue = cmds.values();
-                const arrayCmds = [];
-                for (const cmd of cmdsValue) arrayCmds.push(cmd.config.name);
-                const similarly = findBestMatch(args.join(' '), arrayCmds);
-                if (similarly.bestMatch.rating >= 0.3) return send(` "${args.join(' ')}" là lệnh gần giống là "${similarly.bestMatch.target}" ?`, tid, mid);
-            }
+        const cmdName = args.join(" ").toLowerCase();
+
+        if (cmds.has(cmdName)) {
+            const body = infoCmds(cmds.get(cmdName).config);
+            return send({ body }, tid, mid);
         }
-    } else {
-        const data = commandsGroup();
-        var txt = '╭─────────────⭓\n', count = 0;
-        for (const { commandCategory, commandsName } of data) txt += `│ ${++count}. ${commandCategory} || có ${commandsName.length} lệnh\n`;
-        txt += `├────────⭔\n│ 📝 Tổng có: ${global.client.commands.size} lệnh\n│ ⏰ Time: ${time}\n│ 🔎 Reply từ 1 đến ${data.length} để chọn\n│ ⏳ Tự động gỡ tin nhắn sau: ${autoUnsend.timeOut}s\n╰─────────────⭓`;
-        return send({ body: txt, attachment: img}, tid, (a, b) => {
-            global.client.handleReply.push({ name: this.config.name, messageID: b.messageID, author: sid, 'case': 'infoGr', data });
-            if (autoUnsend.status) setTimeout(v1 => un(v1), 1000 * autoUnsend.timeOut, b.messageID);
-        }, mid);
+
+        if (cmdName === "all") {
+            let txt = "╭─────────────⭓\n";
+            let count = 0;
+
+            for (const cmd of cmds.values()) {
+                txt += `│ ${++count}. ${cmd.config.name} | ${cmd.config.description}\n`;
+            }
+
+            txt += `\n├────────⭔\n│ ⏳ Auto unsend: ${autoUnsend.timeOut}s\n╰─────────────⭓`;
+
+            return send({ body: txt, attachment: img }, tid, (err, info) => {
+                if (autoUnsend.status) {
+                    setTimeout(() => un(info.messageID), autoUnsend.timeOut * 1000);
+                }
+            });
+        }
+
+        // ========== SIMILAR COMMAND SEARCH ==========
+        const allNames = [...cmds.values()].map(c => c.config.name);
+        const similar = findBestMatch(cmdName, allNames);
+
+        if (similar.bestMatch.rating >= 0.3) {
+            return send(
+                `❎ Not found: "${cmdName}"\n🔎 Did you mean: "${similar.bestMatch.target}" ?`,
+                tid,
+                mid
+            );
+        }
+
+        return send(`❎ Command not found: ${cmdName}`, tid, mid);
     }
+
+    // ========== CATEGORY MENU ==========
+    const data = commandsGroup();
+    let txt = '╭─────────────⭓\n';
+    let count = 0;
+
+    for (const item of data) {
+        txt += `│ ${++count}. ${item.commandCategory} || ${item.commandsName.length} commands\n`;
+    }
+
+    txt += `├────────⭔\n`;
+    txt += `│ 📝 Total: ${cmds.size} commands\n`;
+    txt += `│ ⏰ Time: ${time}\n`;
+    txt += `│ 🔎 Reply 1-${data.length} for details\n`;
+    txt += `│ ⏳ Auto unsend: ${autoUnsend.timeOut}s\n`;
+    txt += `╰─────────────⭓`;
+
+    return send({ body: txt, attachment: img }, tid, (err, info) => {
+        global.client.handleReply.push({
+            name: this.config.name,
+            messageID: info.messageID,
+            author: sid,
+            type: "category",
+            data
+        });
+
+        if (autoUnsend.status) {
+            setTimeout(() => un(info.messageID), autoUnsend.timeOut * 1000);
+        }
+    });
 };
 
+// ================= HANDLE REPLY =================
 module.exports.handleReply = async function ({ handleReply: $, api, event }) {
     const { sendMessage: send, unsendMessage: un } = api;
-    const { threadID: tid, messageID: mid, senderID: sid, args } = event;
+    const { threadID: tid, messageID: mid, senderID: sid, body } = event;
+
+    if (sid !== $.author) {
+        return send("⛔ You are not allowed to use this menu", tid, mid);
+    }
+
     const axios = require("axios");
     const url = 'https://files.catbox.moe/amblv9.gif';
     const img = (await axios.get(url, { responseType: "stream" })).data;
 
-    if (sid != $.author) {
-        const msg = `⛔ Cút ra chỗ khác`;
-        return send(msg, tid, mid);
+    const choice = parseInt(body);
+
+    // ========== CATEGORY SELECT ==========
+    if ($.type === "category") {
+        const data = $.data[choice - 1];
+        if (!data) return send("❎ Invalid number", tid, mid);
+
+        un($.messageID);
+
+        let txt = `╭─────────────⭓\n│ ${data.commandCategory}\n├─────⭔\n`;
+        let i = 0;
+
+        for (const name of data.commandsName) {
+            const cmdInfo = global.client.commands.get(name).config;
+            txt += `│ ${++i}. ${name} | ${cmdInfo.description}\n`;
+        }
+
+        txt += `╰─────────────⭓`;
+
+        return send({ body: txt, attachment: img }, tid, (err, info) => {
+            global.client.handleReply.push({
+                name: this.config.name,
+                messageID: info.messageID,
+                author: sid,
+                type: "command",
+                data: data.commandsName
+            });
+
+            if (global.config?.menu?.autoUnsend?.status) {
+                setTimeout(() => un(info.messageID), 60000);
+            }
+        });
     }
 
-    switch ($.case) {
-        case 'infoGr': {
-            var data = $.data[(+args[0]) - 1];
-            if (data == undefined) {
-                const txt = `❎ "${args[0]}" không nằm trong số thứ tự menu`;
-                const msg = txt;
-                return send(msg, tid, mid);
-            }
+    // ========== COMMAND INFO ==========
+    if ($.type === "command") {
+        const cmdName = $.data[choice - 1];
+        const cmd = global.client.commands.get(cmdName);
 
-            un($.messageID);
-            var txt = `╭─────────────⭓\n│ ${data.commandCategory}\n├─────⭔\n`,
-                count = 0;
-            for (const name of data.commandsName) {
-                const cmdInfo = global.client.commands.get(name).config;
-                txt += `│ ${++count}. ${name} | ${cmdInfo.description}\n`;
-            }
-            txt += `├────────⭔\n│ 🔎 Reply từ 1 đến ${data.commandsName.length} để chọn\n│ ⏳ Tự động gỡ tin nhắn sau: ${autoUnsend.timeOut}s\n│ 📝 Dùng ${prefix(tid)}help + tên lệnh để xem chi tiết cách sử dụng lệnh\n╰─────────────⭓`;
-            return send({ body: txt, attachment: img}, tid, (a, b) => {
-                global.client.handleReply.push({ name: this.config.name, messageID: b.messageID, author: sid, 'case': 'infoCmds', data: data.commandsName });
-                if (autoUnsend.status) setTimeout(v1 => un(v1), 1000 * autoUnsend.timeOut, b.messageID);
-            });
-        }
-        case 'infoCmds': {
-            var data = global.client.commands.get($.data[(+args[0]) - 1]);
-            if (typeof data != 'object') {
-                const txt = `⚠️ "${args[0]}" không nằm trong số thứ tự menu`;
-                const msg = txt;
-                return send(msg, tid, mid);
-            }
+        if (!cmd) return send("❎ Command not found", tid, mid);
 
-            const { config = {} } = data || {};
-            un($.messageID);
-            const msg = infoCmds(config);
-            return send(msg, tid, mid);
-        }
-        default:
+        un($.messageID);
+
+        return send(infoCmds(cmd.config), tid, mid);
     }
 };
 
+// ================= GROUP COMMANDS =================
 function commandsGroup() {
-    const array = [],
-        cmds = global.client.commands.values();
+    const array = [];
+    const cmds = global.client.commands.values();
+
     for (const cmd of cmds) {
         const { name, commandCategory } = cmd.config;
-        const find = array.find(i => i.commandCategory == commandCategory)
-        !find ? array.push({ commandCategory, commandsName: [name] }) : find.commandsName.push(name);
+
+        let found = array.find(i => i.commandCategory === commandCategory);
+
+        if (!found) {
+            array.push({
+                commandCategory,
+                commandsName: [name]
+            });
+        } else {
+            found.commandsName.push(name);
+        }
     }
-    array.sort(sortCompare('commandsName'));
-    return array;
+
+    return array.sort((a, b) => b.commandsName.length - a.commandsName.length);
 }
 
+// ================= INFO UI =================
 function infoCmds(a) {
-    return `╭── INFO ────⭓\n│ 📔 Tên lệnh: ${a.name}\n│ 🌴 Phiên bản: ${a.version}\n│ 🔐 Quyền hạn: ${premssionTxt(a.hasPermssion)}\n│ 👤 Tác giả: ${a.credits}\n│ 🌾 Mô tả: ${a.description}\n│ 📎 Thuộc nhóm: ${a.commandCategory}\n│ 📝 Cách dùng: ${a.usages}\n│ ⏳ Thời gian chờ: ${a.cooldowns} giây\n╰─────────────⭓`;
+    return `╭── INFO ────⭓
+│ 📔 Name: ${a.name}
+│ 🌴 Version: ${a.version}
+│ 🔐 Permission: ${permText(a.hasPermssion)}
+│ 👤 Author: ${a.credits}
+│ 🌾 Description: ${a.description}
+│ 📎 Category: ${a.commandCategory}
+│ 📝 Usage: ${a.usages}
+│ ⏳ Cooldown: ${a.cooldowns}s
+╰─────────────⭓`;
 }
 
-function premssionTxt(a) {
-    return a == 0 ? 'Thành Viên' : a == 1 ? 'Quản Trị Viên Nhóm' : a == 2 ? 'ADMINBOT' : 'Người Điều Hành Bot';
-}
-
-function prefix(a) {
-    const tidData = global.data.threadData.get(a) || {};
-    return tidData.PREFIX || global.config.PREFIX;
-}
-
-function sortCompare(k) {
-    return function (a, b) {
-        return (a[k].length > b[k].length ? 1 : a[k].length < b[k].length ? -1 : 0) * -1;
-    };
+function permText(p) {
+    return p == 0 ? "User" : p == 1 ? "Group Admin" : p == 2 ? "Bot Admin" : "Owner";
 }
