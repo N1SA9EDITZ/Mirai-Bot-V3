@@ -1,4 +1,4 @@
-const { readdirSync, readFileSync, writeFileSync } = require("fs-extra");
+const { readdirSync, readFileSync } = require("fs-extra");
 const { join } = require("path");
 const logger = require("./utils/log.js");
 const login = require('@dongdev/fca-unofficial');
@@ -32,60 +32,88 @@ global.client = {
 };
 
 global.data = {
-    threadInfo: new Map(),
-    threadData: new Map(),
-    userName: new Map()
+  threadInfo: new Map(),
+  threadData: new Map(),
+  userName: new Map()
 };
 
 global.utils = require("./utils/func");
 global.config = require('./config.json');
 global.language = {};
 
-const langFile = (readFileSync(`${__dirname}/languages/en.lang`, { encoding: 'utf-8' })).split(/\r?\n|\r/);
-
+// ✅ Load language
+const langFile = readFileSync(`${__dirname}/languages/en.lang`, "utf-8").split(/\r?\n|\r/);
 for (const item of langFile) {
-    if (item.startsWith('#') || item === '') continue;
-    const [key, value] = item.split('=');
-    const head = key.split('.')[0];
-    const subKey = key.replace(head + '.', '');
-    if (!global.language[head]) global.language[head] = {};
-    global.language[head][subKey] = value;
+  if (!item || item.startsWith('#')) continue;
+  const [key, value] = item.split('=');
+  const head = key.split('.')[0];
+  const subKey = key.replace(head + '.', '');
+  if (!global.language[head]) global.language[head] = {};
+  global.language[head][subKey] = value;
 }
 
-function startBot() {
-    login({ appState: global.utils.parseCookies(fs.readFileSync('./cookie.txt', 'utf8'))}, async (err, api) => {
-        if (err) return console.log(err);
+// ✅ Multiple cookie support
+const cookieFiles = [
+  "./cookie.txt",
+  "./cookie2.txt"
+];
 
-        api.setOptions(global.config.FCAOption);
-        global.client.api = api;
+function startBot(index = 0) {
+  if (index >= cookieFiles.length) {
+    return console.log("❌ All cookies failed!");
+  }
 
-        const userId = api.getCurrentUserID();
-        const user = await api.getUserInfo([userId]);
+  let appState;
+  try {
+    const raw = fs.readFileSync(cookieFiles[index], "utf8");
+    appState = global.utils.parseCookies(raw);
+  } catch (e) {
+    console.log(`⚠️ Cannot read ${cookieFiles[index]}, trying next...`);
+    return startBot(index + 1);
+  }
 
-        console.log("🚀 KuRuMi-V3 Connected as:", user[userId]?.name);
+  login({ appState }, async (err, api) => {
+    if (err) {
+      console.log(`⚠️ Cookie ${index + 1} failed, switching...`);
+      return startBot(index + 1);
+    }
 
-        const load = (path, type) => {
-            const files = readdirSync(path).filter(f => f.endsWith(".js"));
-            for (const file of files) {
-                try {
-                    const cmd = require(join(path, file));
-                    global.client[type].set(cmd.config.name, cmd);
-                } catch (e) {
-                    console.log("Error loading:", file);
-                }
-            }
-        };
+    api.setOptions(global.config.FCAOption);
+    global.client.api = api;
 
-        load('./modules/commands', 'commands');
-        load('./modules/events', 'events');
+    const userId = api.getCurrentUserID();
+    const user = await api.getUserInfo([userId]);
 
-        const listener = require('./includes/listen')({ api });
+    console.log(`🚀 KuRuMi-V3 Connected as: ${user[userId]?.name}`);
 
-        api.listenMqtt((err, event) => {
-            if (err) return console.log(err);
-            listener(event);
-        });
+    // ✅ Load commands/events
+    const load = (path, type) => {
+      const files = readdirSync(path).filter(f => f.endsWith(".js"));
+      for (const file of files) {
+        try {
+          const cmd = require(join(path, file));
+          if (cmd.config?.name) {
+            global.client[type].set(cmd.config.name, cmd);
+          }
+        } catch (e) {
+          console.log("❌ Error loading:", file);
+        }
+      }
+    };
+
+    load('./modules/commands', 'commands');
+    load('./modules/events', 'events');
+
+    const listener = require('./includes/listen')({ api });
+
+    api.listenMqtt((err, event) => {
+      if (err) {
+        console.log("⚠️ Connection lost, switching account...");
+        return startBot(index + 1);
+      }
+      listener(event);
     });
+  });
 }
 
 startBot();
