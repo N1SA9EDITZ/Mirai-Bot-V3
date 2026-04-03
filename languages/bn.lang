@@ -1,0 +1,102 @@
+# বাংলা ভাষা ফাইল (Bangla Language Pack)
+# Line break দিতে \n ব্যবহার করো
+
+# kurumi.js
+
+mirai.errorFormat=মডিউল ফরম্যাট ভুল!
+mirai.nameExist=মডিউলের নাম আগেই আছে!
+mirai.notFoundLanguage=মডিউল %1 আপনার ভাষা সাপোর্ট করে না
+mirai.notFoundPackage=মডিউল %2 এর জন্য %1 প্যাকেজ পাওয়া যায়নি, ইনস্টল করা হচ্ছে...
+mirai.cantInstallPackage=%2 এর জন্য %1 ইনস্টল করা যায়নি, error: %3
+mirai.loadedPackage=মডিউল %1 এর সব প্যাকেজ সফলভাবে ইনস্টল হয়েছে
+mirai.loadedConfig=মডিউল %1 এর config সফলভাবে ইনস্টল হয়েছে
+mirai.cantLoadConfig=মডিউল %1 এর config লোড করা যায়নি, error: %2
+mirai.cantOnload=মডিউল %1 চালু করা যায়নি, error: %2
+mirai.successLoadModule=মডিউল %1 সফলভাবে লোড হয়েছে
+mirai.failLoadModule=মডিউল %1 লোড করা যায়নি, error: %2
+mirai.finishLoadModule=%1 টি command এবং %2 টি event সফলভাবে লোড হয়েছে
+mirai.foundPathAppstate=appstate ফাইল পাওয়া গেছে
+mirai.notFoundPathAppstate=appstate ফাইল পাওয়া যায়নি
+mirai.checkListGban=গ্লোবাল ব্যান লিস্ট চেক করা হচ্ছে...
+mirai.banDevice=আপনার ডিভাইস ব্যান করা হয়েছে, বিস্তারিত জানতে যোগাযোগ করুন
+mirai.keyNotSameFormat=কোড অবশ্যই ৬ সংখ্যার হতে হবে
+mirai.codeInputExpired=কোড ভুল বা মেয়াদ শেষ
+mirai.unbanDeviceSuccess=ডিভাইস আনব্যান হয়েছে, রিস্টার্ট দিন
+mirai.userBanned=আপনি %1 তারিখে ব্যান হয়েছেন, কারণ: %2
+mirai.finishCheckListGban=গ্লোবাল ব্যান চেক শেষ
+mirai.handleListenError=handleListener এ error হয়েছে: %1
+mirai.warningSourceCode=সোর্স কোড পরিবর্তন করা হয়েছে! বন্ধ করুন
+mirai.refreshListen=handleListener রিফ্রেশ হয়েছে
+mirai.successConnectDatabase=ডাটাবেজ কানেক্ট হয়েছে
+mirai.failConnectDatabase=ডাটাবেজ কানেক্ট ব্যর্থ: %1
+mirai.successConnectMQTT=MQTT কানেক্ট হয়েছে
+
+# listen.js
+
+listen.startLoadEnvironment=এনভায়রনমেন্ট লোড হচ্ছে...
+listen.loadedEnvironmentThread=থ্রেড ডাটা লোড হয়েছে
+listen.loadedEnvironmentUser=ইউজার ডাটা লোড হয়েছে
+listen.successLoadEnvironment=সব ডাটা লোড সফল
+listen.failLoadEnvironment=লোড ব্যর্থ: %1
+
+# currencies
+
+currencies.needObjectOrArray=Object বা Array দিতে হবে
+currencies.needObject=Object দিতে হবে
+currencies.needNumber=সংখ্যা দিতে হবে
+
+# threads
+
+threads.needObjectOrArray=Object বা Array দিতে হবে
+threads.needObject=Object দিতে হবে
+
+# users
+
+users.needObjectOrArray=Object বা Array দিতে হবে
+users.needObject=Object দিতে হবে
+
+# handleCommand
+
+handleCommand.userBanned=আপনি বট ব্যবহার করতে পারবেন না!\n%1\n%2
+handleCommand.threadBanned=এই গ্রুপে বট নিষিদ্ধ!\n%1\n%2
+handleCommand.commandNotExist=এই কমান্ড নেই, আপনি কি "%1" বলতে চেয়েছেন?
+handleCommand.commandThreadBanned=এই গ্রুপে "%1" কমান্ড নিষিদ্ধ
+handleCommand.commandUserBanned=আপনি "%1" কমান্ড ব্যবহার করতে পারবেন না
+handleCommand.threadNotAllowNSFW=এই গ্রুপে NSFW কমান্ড চালানো যাবে না
+handleCommand.cantGetInfoThread=গ্রুপ তথ্য পাওয়া যায়নি: %1
+handleCommand.permssionNotEnough=আপনার অনুমতি নেই "%1" কমান্ড চালানোর
+handleCommand.cantSetMessageReaction=Reaction দিতে সমস্যা হয়েছে: %1
+handleCommand.executeCommand=[ %1 ] কমান্ড: %2 | ইউজার: %3 | গ্রুপ: %4 | Args: %5 | সময়: %6ms
+handleCommand.commandError=কমান্ড %1 চালাতে error: %2
+
+# handleCommandEvent
+
+handleCommandEvent.moduleError=কমান্ড %1 এ error: %2
+
+# handleCreateDatabase
+
+handleCreateDatabase.newThread=নতুন গ্রুপ: %1
+handleCreateDatabase.newUser=নতুন ইউজার: %1
+
+# handleEvent
+
+handleEvent.executeEvent=[ %1 ] ইভেন্ট: %2 | গ্রুপ: %3 | সময়: %4ms
+handleEvent.eventError=ইভেন্ট %1 এ error: %2
+
+# handleReaction
+
+handleReaction.missingValue=ডাটা নেই
+handleReaction.executeError=Reaction error: %1
+
+# handleReply
+
+handleReply.missingValue=ডাটা নেই
+handleReply.executeError=Reply error: %1
+
+# handleSchedule
+
+handleSchedule.exectuteError=Schedule error: %1
+
+# utils
+
+utils.throwError=[!] কমান্ড ভুল, %1help %2 ব্যবহার করুন
