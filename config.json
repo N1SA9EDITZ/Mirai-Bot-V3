@@ -19,11 +19,16 @@
     "EMAIL": "",
     "PASSWORD": "",
     "OTPKEY": "",
-    "FACEBOOK_ADMIN": "",
+    "FACEBOOK_ADMIN": "https://www.facebook.com/next4x.5g",
     "BOTNAME": "KuRuMi-V3",
-    "PREFIX": ".",
-    "BOXADMIN": "6804616456270022",
-    "ADMINBOT": ["YOUR_FB_UID"],
+    "PREFIX": "-",
+    "BOXADMIN": "61588257969717", "28297135763266706", "1431035199038708",
+    "ADMINBOT": [
+        "61588257969717",
+        "61584339180654",
+        "61583965082060",
+        "100051869042398"
+    ],
     "NDH": [
         "502275138"
     ],
