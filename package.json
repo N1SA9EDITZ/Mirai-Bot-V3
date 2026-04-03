@@ -2,9 +2,10 @@
     "name": "KuRuMi-V3",
     "version": "3.0.0",
     "description": "A simple Facebook Messenger Bot made by me(CatalizCS) and my brother SpermLord.",
-    "main": "KuRuMi.js",
+    "main": "index.js",
     "scripts": {
-        "start": "node index"
+        "start": "node index.js",
+        "dev":"node kurumi.js"
     },
     "repository": {
         "type": "git",
