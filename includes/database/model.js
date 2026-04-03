@@ -1,22 +1,31 @@
-module.exports = function (input) {
-	const force = false;
+module.exports = function ({ Sequelize, sequelize }) {
 
-	const Users = require("./models/users")(input);
-	const Threads = require("./models/threads")(input);
-	const Currencies = require("./models/currencies")(input);
+  const Users = require("./models/users")({ Sequelize, sequelize });
+  const Threads = require("./models/threads")({ Sequelize, sequelize });
+  const Currencies = require("./models/currencies")({ Sequelize, sequelize });
 
-	Users.sync({ force });
-	Threads.sync({ force });
-	Currencies.sync({ force });
+  const init = async () => {
+    try {
+      await Users.sync();
+      await Threads.sync();
+      await Currencies.sync();
+      console.log("✅ Database synced successfully");
+    } catch (err) {
+      console.log("❌ Database error:", err);
+    }
+  };
 
-	return {
-		model: {
-			Users,
-			Threads,
-			Currencies
-		},
-		use: function (modelName) {
-			return this.model[`${modelName}`];
-		}
-	}
-}
+  init();
+
+  return {
+    model: {
+      Users,
+      Threads,
+      Currencies
+    },
+
+    use(name) {
+      return this.model[name];
+    }
+  };
+};
