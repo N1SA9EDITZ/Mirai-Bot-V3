@@ -1,21 +1,30 @@
-module.exports = function({ sequelize, Sequelize }) {
-	let Threads = sequelize.define('Threads', {
-		num: {
-			type: Sequelize.INTEGER,
-			primaryKey: true,
-			autoIncrement: true
-		},
-		threadID: {
-			type: Sequelize.BIGINT,
-			unique: true
-		},
-        threadInfo: {
-            type: Sequelize.JSON
-        },
-		data: {
-			type: Sequelize.JSON
-		}
-	});
+module.exports = function ({ sequelize, Sequelize }) {
 
-	return Threads;
-}
+  const Threads = sequelize.define("Threads", {
+
+    num: {
+      type: Sequelize.INTEGER,
+      primaryKey: true,
+      autoIncrement: true
+    },
+
+    threadID: {
+      type: Sequelize.STRING, // FIXED
+      unique: true,
+      allowNull: false
+    },
+
+    threadInfo: {
+      type: Sequelize.JSON,
+      defaultValue: {}
+    },
+
+    data: {
+      type: Sequelize.JSON,
+      defaultValue: {}
+    }
+
+  });
+
+  return Threads;
+};
