@@ -1,72 +1,118 @@
-const fs = require('fs');
+const fs = require("fs");
 
 module.exports.config = {
   name: "admin",
-  version: "1.0.0",
+  version: "1.0.1",
   hasPermssion: 1,
-  credits: "quocduy & AI",
-  description: "Manage admins",
+  credits: "N1SA9",
+  usePrefix: true,
+  description: "Manage bot admins (list/add/remove)",
   commandCategory: "Admin",
   usages: "admin list/add/remove [userID]",
-  cooldowns: 2,
-  dependencies: {
-    "fs-extra": ""
-  }
+  cooldowns: 2
 };
 
-module.exports.run = async function({ api, event, args }) {
-  const configPath = './config.json';
+module.exports.run = async function ({ api, event, args }) {
+  const configPath = "./config.json";
 
-  // Load the config file
-  const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+  let config;
+  try {
+    config = JSON.parse(fs.readFileSync(configPath, "utf8"));
+  } catch (e) {
+    return api.sendMessage(
+      "❌ Config file error!",
+      event.threadID,
+      event.messageID
+    );
+  }
 
-  // Get the list of admins
-  const admins = config.NDH || [];
+  if (!Array.isArray(config.NDH)) config.NDH = [];
 
-  // Handle different subcommands
+  const admins = config.NDH;
+
   switch (args[0]) {
-    case "list": 
+
+    case "list":
       if (admins.length === 0) {
-        api.sendMessage("There are no admins.", event.threadID, event.messageID);
-      } else {
-        const adminList = admins.map(admin => `- ${admin}`).join('\n');
-        api.sendMessage(`Admins:\n${adminList}`, event.threadID, event.messageID);
+        return api.sendMessage(
+          "❌ No admins found.",
+          event.threadID,
+          event.messageID
+        );
       }
-      break;
 
-    case "add":
-      const newAdminID = args[1];
+      return api.sendMessage(
+        "👑 Admin List:\n" + admins.map(id => `- ${id}`).join("\n"),
+        event.threadID,
+        event.messageID
+      );
+
+    case "add": {
+      const newAdminID = String(args[1]);
+
       if (!newAdminID) {
-        api.sendMessage("Please provide a user ID to add as an admin.", event.threadID, event.messageID);
-        return;
+        return api.sendMessage(
+          "⚠️ Please provide a user ID to add.",
+          event.threadID,
+          event.messageID
+        );
       }
-      if (admins.includes(newAdminID)) {
-        api.sendMessage("This user is already an admin.", event.threadID, event.messageID);
-        return;
-      }
-      admins.push(newAdminID);
-      fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
-      api.sendMessage(`Added ${newAdminID} as an admin.`, event.threadID, event.messageID);
-      break;
 
-    case "remove":
-      const adminToRemoveID = args[1];
-      if (!adminToRemoveID) {
-        api.sendMessage("Please provide a user ID to remove from admins.", event.threadID, event.messageID);
-        return;
+      if (admins.includes(newAdminID)) {
+        return api.sendMessage(
+          "⚠️ This user is already an admin.",
+          event.threadID,
+          event.messageID
+        );
       }
-      if (!admins.includes(adminToRemoveID)) {
-        api.sendMessage("This user is not an admin.", event.threadID, event.messageID);
-        return;
-      }
-      const adminIndex = admins.indexOf(adminToRemoveID);
-      admins.splice(adminIndex, 1);
+
+      admins.push(newAdminID);
+      config.NDH = admins;
+
       fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
-      api.sendMessage(`Removed ${adminToRemoveID} from admins.`, event.threadID, event.messageID);
-      break;
+
+      return api.sendMessage(
+        `✅ Added admin: ${newAdminID}`,
+        event.threadID,
+        event.messageID
+      );
+    }
+
+    case "remove": {
+      const removeID = String(args[1]);
+
+      if (!removeID) {
+        return api.sendMessage(
+          "⚠️ Please provide a user ID to remove.",
+          event.threadID,
+          event.messageID
+        );
+      }
+
+      if (!admins.includes(removeID)) {
+        return api.sendMessage(
+          "❌ This user is not an admin.",
+          event.threadID,
+          event.messageID
+        );
+      }
+
+      config.NDH = admins.filter(id => id !== removeID);
+
+      fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+
+      return api.sendMessage(
+        `✅ Removed admin: ${removeID}`,
+        event.threadID,
+        event.messageID
+      );
+    }
 
     default:
-      api.sendMessage("Invalid subcommand. Usage: admin list/add/remove [userID]", event.threadID, event.messageID);
-      break;
+      return api.sendMessage(
+        "📌 Usage:\nadmin list\nadmin add [userID]\nadmin remove [userID]",
+        event.threadID,
+        event.messageID
+      );
   }
 };
