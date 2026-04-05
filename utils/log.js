@@ -68,3 +68,6 @@ module.exports.load = (data, option) => {
       console.log(co(`[ LOGIN ] ➜ ${data}`));
   }
 };
+module.exports = function (msg, tag) {
+  console.log(tag || "[ LOG ]", msg);
+};
